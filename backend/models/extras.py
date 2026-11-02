@@ -88,6 +88,19 @@ class NewsItem(BaseModel):
     lang: str
     categories: List[str]
     published_at: str
+    translated: bool = False
+
+
+class ArticleBlock(BaseModel):
+    kind: Literal["p", "h", "li", "quote"]
+    text: str
+
+
+class ArticleOut(BaseModel):
+    item: NewsItem
+    status: Literal["full", "summary"]
+    blocks: List[ArticleBlock] = []
+    reading_minutes: int = 1
 
 
 class NewsCategory(BaseModel):

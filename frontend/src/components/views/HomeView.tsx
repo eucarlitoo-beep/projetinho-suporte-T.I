@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { BookOpen, ChevronLeft, ChevronRight, Copy, ExternalLink, Hash, Home, LifeBuoy, Newspaper, Pause, Play, Share2, HeartPulse, GraduationCap } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, ArrowRight, Copy, Hash, Home, LifeBuoy, Newspaper, Pause, Play, Share2, HeartPulse, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { apiGet, errorMessage } from "@/lib/api";
-import type { TicketStats, VerseOut } from "@/lib/types";
+import type { NewsItem, TicketStats, VerseOut } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/components/chat/hooks";
 import { CATEGORY_META, NewsImage, useNews } from "./NewsView";
 import { ViewShell, localTz, relTime } from "./ViewShell";
+import { NewsReader } from "./NewsReader";
+import { VerseImageDialog } from "./VerseImage";
 
 const SLIDE_MS = 7000;
 
@@ -20,7 +22,8 @@ function NewsCarousel({ onSeeAll }: { onSeeAll: () => void }) {
   const [dir, setDir] = useState(1);
   const [paused, setPaused] = useState(false);
   const [hover, setHover] = useState(false);
-  const autoplay = !reduce && !paused && !hover && items.length > 1;
+  const [reading, setReading] = useState<NewsItem | null>(null);
+  const autoplay = !reduce && !paused && !hover && !reading && items.length > 1;
 
   const go = useCallback(
     (delta: number) => {
@@ -48,6 +51,7 @@ function NewsCarousel({ onSeeAll }: { onSeeAll: () => void }) {
   const it = items[i % items.length];
   const meta = CATEGORY_META[it.categories[0]];
   return (
+    <>
     <section
       className="group relative h-80 overflow-hidden rounded-3xl border border-border bg-void sm:h-[420px]"
       aria-roledescription="carrossel"
@@ -63,19 +67,20 @@ function NewsCarousel({ onSeeAll }: { onSeeAll: () => void }) {
       data-testid="home-news-carousel"
     >
       <AnimatePresence initial={false} custom={dir} mode="popLayout">
-        <motion.a
+        <motion.div
           key={it.id}
-          href={it.url}
-          target="_blank"
-          rel="noopener noreferrer"
+          role="button"
+          tabIndex={0}
+          onClick={() => setReading(it)}
+          onKeyDown={(e) => { if (e.key === "Enter") setReading(it); }}
           custom={dir}
           initial={reduce ? { opacity: 0 } : { opacity: 0, x: dir * 60, scale: 1.02 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={reduce ? { opacity: 0 } : { opacity: 0, x: dir * -60 }}
           transition={{ duration: reduce ? 0.2 : 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 block"
+          className="absolute inset-0 block cursor-pointer outline-none"
           aria-roledescription="slide"
-          aria-label={`${(i % items.length) + 1} de ${items.length}: ${it.title}`}
+          aria-label={`${(i % items.length) + 1} de ${items.length}: ${it.title} — abrir no modo leitura`}
           data-testid="home-carousel-slide"
         >
           {it.video ? (
@@ -95,9 +100,9 @@ function NewsCarousel({ onSeeAll }: { onSeeAll: () => void }) {
             </div>
             <h2 className="max-w-3xl type-headline text-[1.75rem] leading-[1.1] tracking-[-0.016em] sm:text-[2.75rem] sm:leading-[1.06]" data-testid="home-carousel-title">{it.title}</h2>
             {it.summary && <p className="mt-3 line-clamp-2 max-w-2xl type-dek text-white/75 sm:text-[1.0625rem]">{it.summary}</p>}
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#00E5FF]">Ler notícia <ExternalLink className="size-3.5" /></span>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#00E5FF]">Ler no modo leitura <ArrowRight className="size-3.5" /></span>
           </div>
-        </motion.a>
+        </motion.div>
       </AnimatePresence>
 
       {/* controls */}
@@ -142,11 +147,14 @@ function NewsCarousel({ onSeeAll }: { onSeeAll: () => void }) {
         ))}
       </div>
     </section>
+    <NewsReader item={reading} onClose={() => setReading(null)} />
+    </>
   );
 }
 
 function VerseCard() {
   const [offset, setOffset] = useState(0);
+  const [imageOpen, setImageOpen] = useState(false);
   const verse = useQuery({
     queryKey: ["verse", offset],
     queryFn: () => apiGet<VerseOut>(`/verse?tz=${encodeURIComponent(localTz())}&offset=${offset}`),
@@ -161,17 +169,6 @@ function VerseCard() {
       toast.success("Versículo copiado");
     } catch {
       toast.error("Não foi possível copiar");
-    }
-  };
-  const share = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Versículo do Dia", text: shareText });
-      } catch {
-        /* user cancelled */
-      }
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener");
     }
   };
   const dateLabel = v ? new Date(`${v.date}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" }) : "";
@@ -209,11 +206,12 @@ function VerseCard() {
         <button type="button" onClick={copy} disabled={!v} data-testid="verse-copy-btn" className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold transition-[border-color,color] hover:border-primary/50 hover:text-primary disabled:opacity-50">
           <Copy className="size-3.5" /> Copiar
         </button>
-        <button type="button" onClick={share} disabled={!v} data-testid="verse-share-btn" className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-[0_0_20px_-6px_var(--glow)] transition-[transform] active:scale-95 disabled:opacity-50">
-          <Share2 className="size-3.5" /> Compartilhar
+        <button type="button" onClick={() => setImageOpen(true)} disabled={!v} data-testid="verse-share-btn" className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-[0_0_20px_-6px_var(--glow)] transition-[transform] active:scale-95 disabled:opacity-50">
+          <Share2 className="size-3.5" /> Criar imagem
         </button>
         {v && <span className="ml-auto text-[10px] text-muted-foreground">{v.translation}</span>}
       </div>
+      <VerseImageDialog verse={v} dateLabel={dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)} open={imageOpen} onOpenChange={setImageOpen} />
     </div>
   );
 }

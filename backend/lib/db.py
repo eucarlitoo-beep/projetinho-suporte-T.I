@@ -36,6 +36,8 @@ INDEXES: dict[str, list[IndexModel]] = {
     ],
     "reads": [IndexModel([("user_id", ASCENDING), ("channel_id", ASCENDING)], name="user_channel", unique=True)],
     "files": [IndexModel([("id", ASCENDING)], name="id", unique=True)],
+    "news_translations": [IndexModel([("id", ASCENDING)], name="id", unique=True)],
+    "news_articles": [IndexModel([("id", ASCENDING)], name="id", unique=True)],
     "ai_messages": [IndexModel([("user_id", ASCENDING), ("channel_id", ASCENDING), ("created_at", ASCENDING)], name="user_channel_created")],
 }
 

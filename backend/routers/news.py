@@ -16,10 +16,12 @@ import os
 
 import httpx
 from emergentintegrations.llm.chat import LlmChat, UserMessage
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+import trafilatura
 
 from lib.auth import current_user
-from models.extras import NewsCategory, NewsItem, NewsOut
+from lib.db import db
+from models.extras import ArticleBlock, ArticleOut, NewsCategory, NewsItem, NewsOut
 
 router = APIRouter(prefix="/news", tags=["news"])
 log = logging.getLogger("news")
@@ -39,7 +41,7 @@ SCHOOL_TECH = r"tecnolog|digital|rob[oó]t|intelig[eê]ncia artificial|\bIA\b|\b
 TECH = r"tecnolog|intelig[eê]ncia artificial|\bIA\b|digital|internet|rob[oô]|algoritmo|chip|smartphone|celular|aplicativo|big tech|google|apple|microsoft|openai|chatgpt|redes sociais|computa"
 EDU = r"escola|educa|professor|aluno|estudante|universidade|ensino|enem|alfabetiza"
 
-# Only Portuguese-language outlets, so the whole section stays in PT-BR (international coverage via BBC News Brasil, DW and RFI).
+# PT outlets are shown as-is; foreign-language outlets (lang != "pt") are shown ONLY once translated to PT-BR.
 # (name, url, region, lang, {category: keyword-regex or None for "all items"})
 FEEDS = [
     ("g1 Tecnologia", "https://g1.globo.com/rss/g1/tecnologia/", "br", "pt", {"ia": None, "seguranca": SEG}),
@@ -59,7 +61,12 @@ FEEDS = [
     ("g1 Bem Estar", "https://g1.globo.com/rss/g1/bemestar/", "br", "pt", {"saude": MENTAL}),
     ("Folha Equilíbrio e Saúde", "https://feeds.folha.uol.com.br/equilibrioesaude/rss091.xml", "br", "pt", {"saude": MENTAL}),
     ("Agência Brasil Saúde", "https://agenciabrasil.ebc.com.br/rss/saude/feed.xml", "br", "pt", {"saude": MENTAL}),
+    ("BBC", "https://feeds.bbci.co.uk/news/technology/rss.xml", "mundo", "en", {"ia": None, "seguranca": SEG}),
+    ("The Guardian", "https://www.theguardian.com/technology/rss", "mundo", "en", {"ia": None, "seguranca": SEG, "saude": MENTAL}),
+    ("The Guardian", "https://www.theguardian.com/education/rss", "mundo", "en", {"educacao": None, "escolas": SCHOOL_TECH, "saude": MENTAL}),
+    ("EdSurge", "https://www.edsurge.com/articles_rss", "mundo", "en", {"escolas": None, "educacao": None}),
 ]
+MAX_PER_FOREIGN_FEED = 15  # keeps the translation bill bounded
 
 NS = {
     "media": "http://search.yahoo.com/mrss/",
@@ -152,39 +159,66 @@ def _parse(xml: bytes, feed: tuple) -> list[dict]:
 async def _fetch(client: httpx.AsyncClient, feed: tuple) -> list[dict]:
     r = await client.get(feed[1])
     r.raise_for_status()
-    return _parse(r.content, feed)
+    items = _parse(r.content, feed)
+    if feed[3] != "pt":
+        items = sorted(items, key=lambda x: x["published_at"], reverse=True)[:MAX_PER_FOREIGN_FEED]
+    return items
 
 
-# ---- PT-BR guarantee: any headline that slips in another language is translated (cached by id)
-_EN = re.compile(r"\b(the|and|of|to|is|for|with|on|how|why|what|from|are|will|your|this|that)\b", re.I)
-_PT = re.compile(r"\b(o|a|os|as|de|do|da|dos|das|que|em|para|com|um|uma|no|na|é|por|não|ao)\b", re.I)
-_tr: dict[str, tuple[str, str]] = {}
+# ---- PT-BR guarantee: foreign-language items are translated by the LLM and persisted (news_translations)
+TR_SYSTEM = (
+    "Você é editor de um portal de notícias brasileiro. Traduza para português do Brasil com linguagem jornalística "
+    "natural e concisa (manchetes sem ponto final). Mantenha nomes próprios e marcas. Responda SOMENTE com JSON válido."
+)
 
 
-def _foreign(it: dict) -> bool:
-    t = f"{it['title']} {it['summary']}"
-    return len(_EN.findall(t)) > max(2, len(_PT.findall(t)))
+def _llm(session: str) -> LlmChat:
+    return LlmChat(api_key=os.environ["EMERGENT_LLM_KEY"], session_id=session, system_message=TR_SYSTEM).with_model(
+        "anthropic", "claude-sonnet-4-6")
 
 
-async def _translate(items: list[dict]) -> None:
-    todo = [it for it in items if it["id"] not in _tr and _foreign(it)][:40]
+def _json_list(raw: str) -> list:
+    return json.loads(raw[raw.find("["): raw.rfind("]") + 1])
+
+
+async def _translate_batch(batch: list[dict]) -> None:
+    payload = [{"id": it["id"], "title": it["title"], "summary": it["summary"]} for it in batch]
+    try:
+        raw = await _llm(f"news-tr-{batch[0]['id']}").send_message(UserMessage(
+            text="Traduza cada objeto (campos title e summary) e devolva a lista [{id,title,summary}]:\n"
+            + json.dumps(payload, ensure_ascii=False)))
+        rows = [r for r in _json_list(raw) if r.get("id") and r.get("title")]
+        for r in rows:
+            await db.news_translations.update_one(
+                {"id": r["id"]}, {"$set": {"id": r["id"], "title": r["title"], "summary": r.get("summary", "")}}, upsert=True)
+    except Exception as exc:  # no balance / bad JSON: items simply stay hidden until the next refresh
+        log.warning("news translation failed: %s", type(exc).__name__)
+
+
+async def _translate(items: list[dict]) -> list[dict]:
+    """Returns the items to publish: PT items + foreign items that have a PT-BR translation."""
+    foreign = [it for it in items if it["lang"] != "pt"]
+    if not foreign:
+        return items
+    ids = [it["id"] for it in foreign]
+    done = {d["id"] async for d in db.news_translations.find({"id": {"$in": ids}}, {"id": 1})}
+    todo = [it for it in foreign if it["id"] not in done]
     if todo and os.environ.get("EMERGENT_LLM_KEY"):
-        payload = [{"id": it["id"], "title": it["title"], "summary": it["summary"][:400]} for it in todo]
-        try:
-            chat = LlmChat(
-                api_key=os.environ["EMERGENT_LLM_KEY"], session_id=f"news-tr-{int(time.time())}",
-                system_message="Você é editor de um portal de notícias brasileiro. Traduza para português do Brasil, "
-                "com linguagem jornalística natural. Responda SOMENTE com JSON: lista de objetos {id,title,summary}.",
-            ).with_model("anthropic", "claude-sonnet-4-6")
-            raw = await chat.send_message(UserMessage(text=json.dumps(payload, ensure_ascii=False)))
-            raw = raw[raw.find("["): raw.rfind("]") + 1]
-            for r in json.loads(raw):
-                _tr[r["id"]] = (r["title"], r.get("summary", ""))
-        except Exception as exc:  # never block the feed on translation
-            log.warning("news translation failed: %s", type(exc).__name__)
+        sem = asyncio.Semaphore(2)  # gentle on the LLM rate limit
+
+        async def run(batch: list[dict]) -> None:
+            async with sem:
+                await _translate_batch(batch)
+        await asyncio.gather(*(run(todo[i:i + 12]) for i in range(0, len(todo), 12)))
+    tr = {d["id"]: d async for d in db.news_translations.find({"id": {"$in": ids}})}
+    out = []
     for it in items:
-        if it["id"] in _tr:
-            it["title"], it["summary"] = _tr[it["id"]]
+        if it["lang"] == "pt":
+            out.append(it)
+        elif it["id"] in tr:
+            it.update(title=tr[it["id"]]["title"], summary=tr[it["id"]]["summary"], translated=True)
+            out.append(it)
+    return out
 
 
 async def _refresh() -> None:
@@ -208,9 +242,9 @@ async def _refresh() -> None:
         _cache["failed"] = failed  # keep serving the last good copy
         _cache["fetched_at"] = time.time() - TTL + 120  # retry in 2 min
         return
-    await _translate(list(merged.values()))
+    published = await _translate(list(merged.values()))
     _cache.update(
-        items=sorted(merged.values(), key=lambda x: x["published_at"], reverse=True),
+        items=sorted(published, key=lambda x: x["published_at"], reverse=True),
         fetched_at=time.time(), updated_at=datetime.now(timezone.utc).isoformat(), failed=failed,
     )
 
@@ -248,4 +282,86 @@ async def list_news(
     return NewsOut(
         items=[NewsItem(**i) for i in items[:limit]], categories=CATEGORIES,
         updated_at=_cache["updated_at"], failed_sources=_cache["failed"],
+    )
+
+
+# ---------------- reading mode ----------------
+MD_EMPH = re.compile(r"(\*\*|__|\*|`)")
+MD_LINK = re.compile(r"!?\[([^\]]*)\]\([^)]*\)")
+MAX_ARTICLE_CHARS = 14000
+
+
+def _blocks(md: str, title: str) -> list[dict]:
+    out, total = [], 0
+    for line in md.splitlines():
+        line = MD_EMPH.sub("", MD_LINK.sub(r"\1", line)).strip()
+        if not line or line.lower() == title.lower():
+            continue
+        kind = "p"
+        if line.startswith("#"):
+            kind, line = "h", line.lstrip("#").strip()
+        elif line.startswith(("- ", "* ", "• ")):
+            kind, line = "li", line[2:].strip()
+        elif line.startswith(">"):
+            kind, line = "quote", line.lstrip("> ").strip()
+        if len(line) < 2 or (kind == "li" and len(line) < 20) or (
+                kind == "p" and len(line) < 45 and not line.endswith((".", "!", "?", ":"))):
+            continue  # captions, bylines, share buttons
+        if kind == "h" and not out:
+            continue  # the page's own headline duplicates the title we already show
+        out.append({"kind": kind, "text": line})
+        total += len(line)
+        if total > MAX_ARTICLE_CHARS:
+            break
+    return out
+
+
+async def _extract(url: str) -> str:
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
+               "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8"}
+    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=True, headers=headers) as client:
+        r = await client.get(url)
+        r.raise_for_status()
+    return await asyncio.to_thread(
+        trafilatura.extract, r.text, output_format="markdown", include_comments=False, include_tables=False,
+        include_images=False, include_links=False, favor_precision=True) or ""
+
+
+async def _translate_blocks(news_id: str, blocks: list[dict]) -> list[dict]:
+    texts = [b["text"] for b in blocks]
+    raw = await _llm(f"news-art-{news_id}").send_message(UserMessage(
+        text="Traduza cada parágrafo desta lista JSON preservando toda a pontuação original (inclusive o ponto final). "
+        "Devolva uma lista JSON com o MESMO número de itens, na mesma ordem:\n"
+        + json.dumps(texts, ensure_ascii=False)))
+    tr = _json_list(raw)
+    if len(tr) != len(texts):
+        raise ValueError("translation length mismatch")
+    return [{"kind": b["kind"], "text": str(t)} for b, t in zip(blocks, tr)]
+
+
+@router.get("/{news_id}/article", response_model=ArticleOut)
+async def read_article(news_id: str, _me: dict = Depends(current_user)):
+    item = next((i for i in await _items() if i["id"] == news_id), None)
+    if not item:
+        raise HTTPException(status_code=404, detail="Notícia não encontrada ou expirada.")
+    cached = await db.news_articles.find_one({"id": news_id}, {"_id": 0})
+    if cached:
+        blocks = cached["blocks"]
+    else:
+        blocks = []
+        try:
+            blocks = _blocks(await _extract(item["url"]), item["title"])
+            if sum(len(b["text"]) for b in blocks) < 400:
+                blocks = []  # paywall / script-rendered page: not worth a reader
+            if blocks and item["lang"] != "pt":
+                blocks = await _translate_blocks(news_id, blocks)
+        except Exception as exc:
+            log.info("reader fallback for %s: %s", item["source"], type(exc).__name__)
+            blocks = []
+        if blocks:
+            await db.news_articles.update_one({"id": news_id}, {"$set": {"id": news_id, "blocks": blocks}}, upsert=True)
+    words = sum(len(b["text"].split()) for b in blocks) or len(item["summary"].split())
+    return ArticleOut(
+        item=NewsItem(**item), status="full" if blocks else "summary",
+        blocks=[ArticleBlock(**b) for b in blocks], reading_minutes=max(1, round(words / 220)),
     )

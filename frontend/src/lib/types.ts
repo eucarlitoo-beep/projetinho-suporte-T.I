@@ -211,6 +211,19 @@ export interface NewsItem {
   lang: string;
   categories: NewsCategoryId[];
   published_at: string;
+  translated: boolean;
+}
+
+export interface ArticleBlock {
+  kind: "p" | "h" | "li" | "quote";
+  text: string;
+}
+
+export interface ArticleOut {
+  item: NewsItem;
+  status: "full" | "summary";
+  blocks: ArticleBlock[];
+  reading_minutes: number;
 }
 
 export interface NewsCategory {

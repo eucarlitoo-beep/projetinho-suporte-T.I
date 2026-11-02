@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { ArrowDownWideNarrow, ExternalLink, Globe2, HeartPulse, Newspaper, RefreshCw, Search, ShieldCheck, Sparkles, GraduationCap, BookOpenText } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowRight, Globe2, Languages, HeartPulse, Newspaper, RefreshCw, Search, ShieldCheck, Sparkles, GraduationCap, BookOpenText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiGet, errorMessage } from "@/lib/api";
 import type { NewsCategoryId, NewsItem, NewsOut } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ViewShell, relTime } from "./ViewShell";
+import { NewsReader } from "./NewsReader";
 
 export const CATEGORY_META: Record<NewsCategoryId, { icon: LucideIcon; label: string; tint: string }> = {
   ia: { icon: Sparkles, label: "Tecnologia & IA", tint: "#00E5FF" },
@@ -51,17 +52,19 @@ export function NewsImage({ item, className }: { item: NewsItem; className?: str
   return <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBroken(true)} className={cn("object-cover", className)} />;
 }
 
-function NewsCard({ item, index, featured }: { item: NewsItem; index: number; featured?: boolean }) {
+function NewsCard({ item, index, featured, onRead }: { item: NewsItem; index: number; featured?: boolean; onRead: (it: NewsItem) => void }) {
   return (
-    <motion.a
-      href={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.article
+      role="button"
+      tabIndex={0}
+      aria-label={`Ler no modo leitura: ${item.title}`}
+      onClick={() => onRead(item)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRead(item); } }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.03, 0.4), duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-2xl border border-border bg-card/60 backdrop-blur transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_20px_50px_-25px_var(--glow)]",
+        "group flex cursor-pointer flex-col overflow-hidden rounded-2xl outline-none focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/40 border border-border bg-card/60 backdrop-blur transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_20px_50px_-25px_var(--glow)]",
         featured && "sm:col-span-2 sm:flex-row",
       )}
       data-testid={`news-card-${item.id}`}
@@ -79,7 +82,9 @@ function NewsCard({ item, index, featured }: { item: NewsItem; index: number; fe
           <span className="type-eyebrow text-[10px] text-primary" data-testid="news-card-source">{item.source}</span>
           <span className="size-0.5 rounded-full bg-muted-foreground/60" aria-hidden />
           <time dateTime={item.published_at} title={new Date(item.published_at).toLocaleString("pt-BR")} data-testid="news-card-date">{relTime(item.published_at)}</time>
-          {item.region === "mundo" && (
+          {item.translated ? (
+            <span className="ml-auto flex items-center gap-1" title="Traduzido automaticamente para o português" data-testid="news-card-translated"><Languages className="size-3" /> Traduzido</span>
+          ) : item.region === "mundo" && (
             <span className="ml-auto flex items-center gap-1"><Globe2 className="size-3" /> Internacional</span>
           )}
         </div>
@@ -91,10 +96,10 @@ function NewsCard({ item, index, featured }: { item: NewsItem; index: number; fe
         </h3>
         {item.summary && <p className={cn("mt-2.5 type-dek text-[0.875rem] text-muted-foreground", featured ? "line-clamp-4 sm:text-[0.9375rem]" : "line-clamp-3")}>{item.summary}</p>}
         <span className="mt-auto flex items-center gap-1.5 pt-4 text-[0.8125rem] font-semibold tracking-[-0.005em] text-primary opacity-80 transition-[opacity,gap] duration-200 group-hover:gap-2.5 group-hover:opacity-100">
-          Ler matéria completa <ExternalLink className="size-3" />
+          Ler no modo leitura <ArrowRight className="size-3" />
         </span>
       </div>
-    </motion.a>
+    </motion.article>
   );
 }
 
@@ -104,6 +109,7 @@ export function NewsView({ onOpenNav, initialCategory }: { onOpenNav: () => void
   const [sort, setSort] = useState("recentes");
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
+  const [reading, setReading] = useState<NewsItem | null>(null);
   const news = useNews({ category: category === "todas" ? undefined : category, region: region === "todas" ? undefined : region, q: term, sort, limit: 90 });
   const cats = news.data?.categories ?? [];
   const activeCat = cats.find((c) => c.id === category);
@@ -130,7 +136,7 @@ export function NewsView({ onOpenNav, initialCategory }: { onOpenNav: () => void
             </p>
             <h2 className="mt-1.5 type-headline text-[2rem] leading-[1.06] tracking-[-0.018em] sm:text-[2.75rem]">Tecnologia, educação e bem-estar</h2>
           </div>
-          <p className="max-w-sm type-caption text-muted-foreground sm:text-right">Curadoria automática de veículos brasileiros e serviços internacionais em português.</p>
+          <p className="max-w-sm type-caption text-muted-foreground sm:text-right">Curadoria automática de veículos brasileiros e internacionais — tudo em português.</p>
         </div>
         {/* category tabs */}
         <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:none]" role="tablist" data-testid="news-category-tabs">
@@ -221,10 +227,11 @@ export function NewsView({ onOpenNav, initialCategory }: { onOpenNav: () => void
           <p className="mt-16 text-center text-sm text-muted-foreground" data-testid="news-empty">Nenhuma notícia encontrada para esse filtro.</p>
         ) : (
           <div className={cn("mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3", news.isPlaceholderData && "opacity-60 transition-opacity")} data-testid="news-grid">
-            {news.data.items.map((it, i) => <NewsCard key={it.id} item={it} index={i} featured={i === 0 && sort === "recentes" && !term} />)}
+            {news.data.items.map((it, i) => <NewsCard key={it.id} item={it} index={i} featured={i === 0 && sort === "recentes" && !term} onRead={setReading} />)}
           </div>
         )}
       </div>
+      <NewsReader item={reading} onClose={() => setReading(null)} />
     </ViewShell>
   );
 }

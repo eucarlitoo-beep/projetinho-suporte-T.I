@@ -60,3 +60,9 @@ Seeded messages include threads (m4 in #geral has 3 replies), reactions and pins
 - Semantic utilities in src/index.css: type-display, type-section, type-title, type-h3-lg, type-h3, type-h4, type-bar, type-wordmark, type-author, type-lead, type-reading, type-dek, type-eyebrow, type-caption, type-meta, type-kpi, type-headline.
 - Weights come from --w-display/--w-heading/--w-title/--w-strong and --track-text tokens; .dark trims weight & opens tracking.
 - News: all sources are PT-BR; backend `_translate` (news.py) auto-translates any foreign-language item via Claude (EMERGENT_LLM_KEY), cached by id; fails open.
+
+## Reading mode, international sources, verse image (v3)
+- `GET /api/news/{id}/article` → ArticleOut {item, status: full|summary, blocks[{kind p|h|li|quote, text}], reading_minutes}. Full text extracted with trafilatura from the original URL; foreign articles translated via Claude; cached in `news_articles`. Blocked sites (e.g. Tecnoblog 403) → status "summary" + "Ler no site original". 404 for unknown id.
+- Foreign feeds (lang "en"): BBC Technology, The Guardian (tech + education), EdSurge — max 15 items/feed. Shown ONLY after PT-BR translation (persisted in `news_translations`); NewsItem.translated=true → "Traduzido" badge.
+- Frontend: NewsReader.tsx (full-screen Dialog, editorial column, A−/A+ sizes 16/18/20/22 saved in localStorage `nexus-reader-size`, scroll progress bar). Opened from news cards and the Home carousel.
+- VerseImage.tsx: canvas PNG of the verse (Newsreader italic + Inter), formats Quadrado 1080×1080 / Vertical 1080×1920; share via Web Share (files) or download; "Só o texto" → wa.me.
