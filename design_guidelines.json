@@ -1,0 +1,303 @@
+{
+  "project_name": "Nexus IT Support - Typography Art Direction",
+  "archetype": "SLACK_EDITORIAL_PRECISION",
+  "context": "Typography-only art direction for an existing Slack-like school IT support workspace in PT-BR. No color, layout, or structural changes. Focus on Slack-quality modern, clean, friendly, and professional typography using Inter (with optical size and OpenType features), Newsreader for news headlines, and JetBrains Mono for code/chips.",
+  "colors": {
+    "surfaces": [
+      {
+        "name": "page_dark",
+        "kind": "solid",
+        "bg": "#070B14",
+        "on_bg": "#F8FAFC",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#38BDF8",
+          "error": "#F87171",
+          "success": "#34D399",
+          "brand": "#00E5FF"
+        }
+      },
+      {
+        "name": "sidebar_dark",
+        "kind": "solid",
+        "bg": "#0B1120",
+        "on_bg": "#E2E8F0",
+        "on_bg_muted": "#64748B",
+        "roles": {
+          "active_channel": "#00E5FF",
+          "badge": "#00E5FF"
+        }
+      },
+      {
+        "name": "card_dark",
+        "kind": "solid",
+        "bg": "#0F172A",
+        "on_bg": "#F1F5F9",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#38BDF8",
+          "kpi": "#00E5FF"
+        }
+      },
+      {
+        "name": "page_light",
+        "kind": "solid",
+        "bg": "#F8FAFC",
+        "on_bg": "#0F172A",
+        "on_bg_muted": "#64748B",
+        "roles": {
+          "link": "#0284C7",
+          "error": "#DC2626",
+          "success": "#059669",
+          "brand": "#0284C7"
+        }
+      },
+      {
+        "name": "card_light",
+        "kind": "solid",
+        "bg": "#FFFFFF",
+        "on_bg": "#0F172A",
+        "on_bg_muted": "#64748B",
+        "roles": {
+          "link": "#0284C7",
+          "kpi": "#0284C7"
+        }
+      },
+      {
+        "name": "hero_banner",
+        "kind": "solid",
+        "bg": "#070B14",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#00E5FF"
+        }
+      }
+    ],
+    "accent": "#00E5FF",
+    "on_accent": "#070B14"
+  },
+  "entry_surfaces": {
+    "/": "split hero — brand value proposition + CTA left with Slack-level typographic balance, seeded live preview cards right",
+    "/workspace": "3-column workspace with left rail, channel list sidebar, central chat message flow, and contextual side panel",
+    "/news": "editorial news portal with Newsreader serif headlines, Portuguese categories, and refined article summaries"
+  },
+  "typography": {
+    "font_family": {
+      "sans": "Inter Variable, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "heading": "Inter Variable, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "news_headline": "Newsreader Variable, Georgia, serif",
+      "mono": "JetBrains Mono Variable, Menlo, Monaco, Consolas, monospace"
+    },
+    "scale_px": {
+      "display": 56,
+      "h1": 44,
+      "h2": 32,
+      "h3": 24,
+      "h4": 18,
+      "lead": 18,
+      "body": 15,
+      "caption": 13,
+      "micro": 11
+    },
+    "font_features": {
+      "inter": "'cv02', 'cv03', 'cv04', 'cv11', 'ss01'",
+      "tabular_numbers": "'tnum' on, 'lnum' on",
+      "newsreader": "'opsz' 36, 'liga', 'clig'"
+    },
+    "optical_sizing_rules": {
+      "display_and_headings": "font-optical-sizing: auto; font-variation-settings: 'opsz' 32;",
+      "body_and_chat": "font-optical-sizing: auto; font-variation-settings: 'opsz' 14;",
+      "news_headlines": "font-optical-sizing: auto; font-variation-settings: 'opsz' 36;"
+    },
+    "roles_and_styles": {
+      "landing_hero_h1": {
+        "font_family": "var(--font-sans)",
+        "size_desktop": "text-4xl sm:text-5xl lg:text-[52px]",
+        "line_height": "leading-[1.12]",
+        "letter_spacing": "tracking-[-0.025em]",
+        "weight": "font-extrabold sm:font-[800]",
+        "css_classes": "font-sans text-4xl sm:text-5xl lg:text-[52px] font-[800] leading-[1.12] tracking-[-0.025em] text-foreground",
+        "notes": "Tight tracking without over-compression. Replaced old -0.045em which clipped glyphs."
+      },
+      "landing_eyebrow": {
+        "font_family": "var(--font-sans)",
+        "size": "text-xs sm:text-[12px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[0.18em]",
+        "weight": "font-bold",
+        "text_transform": "uppercase",
+        "css_classes": "text-[12px] font-bold uppercase tracking-[0.18em] text-primary",
+        "notes": "Slack/Stripe badge eyebrow style."
+      },
+      "section_h2": {
+        "font_family": "var(--font-sans)",
+        "size": "text-2xl sm:text-3xl lg:text-[32px]",
+        "line_height": "leading-[1.2]",
+        "letter_spacing": "tracking-[-0.02em]",
+        "weight": "font-bold",
+        "css_classes": "text-2xl sm:text-3xl lg:text-[32px] font-bold leading-[1.2] tracking-[-0.02em] text-foreground"
+      },
+      "card_title_h3": {
+        "font_family": "var(--font-sans)",
+        "size": "text-lg sm:text-xl",
+        "line_height": "leading-snug",
+        "letter_spacing": "tracking-[-0.015em]",
+        "weight": "font-semibold",
+        "css_classes": "text-lg sm:text-xl font-semibold leading-snug tracking-[-0.015em] text-foreground"
+      },
+      "lead_paragraph": {
+        "font_family": "var(--font-sans)",
+        "size": "text-base sm:text-lg",
+        "line_height": "leading-relaxed",
+        "letter_spacing": "tracking-[-0.005em]",
+        "weight": "font-normal",
+        "css_classes": "text-base sm:text-lg font-normal leading-relaxed tracking-[-0.005em] text-muted-foreground"
+      },
+      "body_text": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[15px]",
+        "line_height": "leading-[1.6]",
+        "letter_spacing": "tracking-[-0.006em]",
+        "weight": "font-normal",
+        "css_classes": "text-[15px] font-normal leading-[1.6] tracking-[-0.006em] text-foreground/90"
+      },
+      "chat_author_name": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[14px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[-0.01em]",
+        "weight": "font-bold",
+        "css_classes": "text-[14px] font-bold leading-none tracking-[-0.01em] text-foreground",
+        "notes": "Authentic Slack message author weight and crispness."
+      },
+      "chat_timestamp": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[12px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[0.01em]",
+        "weight": "font-normal",
+        "css_classes": "text-[12px] font-normal leading-none tracking-[0.01em] text-muted-foreground/75"
+      },
+      "chat_message_body": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[15px]",
+        "line_height": "leading-[1.5]",
+        "letter_spacing": "tracking-[-0.005em]",
+        "weight": "font-normal",
+        "css_classes": "text-[15px] font-normal leading-[1.5] tracking-[-0.005em] text-foreground/95"
+      },
+      "sidebar_channel_item": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[14px]",
+        "line_height": "leading-tight",
+        "letter_spacing": "tracking-[-0.01em]",
+        "weight": "font-medium hover:font-semibold",
+        "css_classes": "text-[14px] font-medium leading-tight tracking-[-0.01em] text-sidebar-foreground hover:text-foreground"
+      },
+      "sidebar_section_header": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[11px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[0.08em]",
+        "weight": "font-bold",
+        "text_transform": "uppercase",
+        "css_classes": "text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground/80"
+      },
+      "button_and_action": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[14px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[-0.01em]",
+        "weight": "font-semibold",
+        "css_classes": "text-[14px] font-semibold leading-none tracking-[-0.01em]"
+      },
+      "kpi_metric_number": {
+        "font_family": "var(--font-sans)",
+        "size": "text-2xl sm:text-3xl lg:text-4xl",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-tight",
+        "weight": "font-extrabold",
+        "font_variant_numeric": "tabular-nums",
+        "css_classes": "text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight tabular-nums text-foreground",
+        "notes": "Always enable tabular-nums for aligned ticket statistics and metrics."
+      },
+      "kpi_metric_label": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[12px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[0.02em]",
+        "weight": "font-medium",
+        "css_classes": "text-[12px] font-medium leading-none tracking-[0.02em] text-muted-foreground"
+      },
+      "news_headline_editorial": {
+        "font_family": "var(--font-newsreader)",
+        "size": "text-xl sm:text-2xl lg:text-[26px]",
+        "line_height": "leading-[1.25]",
+        "letter_spacing": "tracking-[-0.015em]",
+        "weight": "font-semibold",
+        "css_classes": "font-serif text-xl sm:text-2xl lg:text-[26px] font-semibold leading-[1.25] tracking-[-0.015em] text-foreground",
+        "notes": "Exclusive to News / Notícias portal headlines in PT-BR for editorial sophistication."
+      },
+      "news_dek_summary": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[14px]",
+        "line_height": "leading-[1.55]",
+        "letter_spacing": "tracking-normal",
+        "weight": "font-normal",
+        "css_classes": "text-[14px] font-normal leading-[1.55] tracking-normal text-muted-foreground"
+      },
+      "news_meta_badge_date": {
+        "font_family": "var(--font-sans)",
+        "size": "text-[11px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-[0.04em]",
+        "weight": "font-semibold",
+        "css_classes": "text-[11px] font-semibold leading-none tracking-[0.04em] text-muted-foreground/80 uppercase"
+      },
+      "code_chip_tag": {
+        "font_family": "var(--font-mono)",
+        "size": "text-[12px]",
+        "line_height": "leading-none",
+        "letter_spacing": "tracking-normal",
+        "weight": "font-medium",
+        "css_classes": "font-mono text-[12px] font-medium leading-none text-primary"
+      }
+    }
+  },
+  "dark_mode_compensation": {
+    "principle": "In dark mode, letterforms bleed light outwards and appear heavier. Inter weights are calibrated: use 700/800 in dark mode where light mode uses 800/900; ensure anti-aliasing is enabled (subpixel-antialiased or antialiased); maintain minimum 4.5:1 contrast for all secondary copy (#94A3B8 against #070B14 gives 7.2:1 contrast ratio)."
+  },
+  "news_portuguese_requirements": {
+    "language": "pt-BR",
+    "strict_rule": "Every title, category, badge, and date in the news section must be in Brazilian Portuguese.",
+    "categories_vocabulary": [
+      "Infraestrutura",
+      "Segurança Digital",
+      "Sistemas Acadêmicos",
+      "Capacitação Docente",
+      "Redes & Conectividade",
+      "Políticas de T.I."
+    ],
+    "meta_labels": {
+      "published_prefix": "Publicado em",
+      "author_prefix": "Por",
+      "read_time_suffix": "min de leitura",
+      "source_label": "Fonte:",
+      "filter_all": "Todas as Notícias",
+      "search_placeholder": "Pesquisar comunicados e artigos..."
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. Replace all heading tracking from '-0.045em' or overly compressed letter-spacing to the balanced values in this guide (maximum -0.025em for H1, -0.02em for H2, -0.015em for H3).",
+    "2. Ensure @fontsource-variable/inter and @fontsource-variable/newsreader and @fontsource-variable/jetbrains-mono are correctly imported in /app/frontend/src/index.css.",
+    "3. Set CSS variables --font-sans: 'Inter Variable', sans-serif; --font-heading: 'Inter Variable', sans-serif; --font-newsreader: 'Newsreader Variable', serif; --font-mono: 'JetBrains Mono Variable', monospace;",
+    "4. Apply font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01' globally to Inter for Slack-style friendly and open letterforms.",
+    "5. Use 'Newsreader Variable' (font-serif) ONLY for News section headlines. All other headlines, navigation, buttons, and chat messages MUST use Inter.",
+    "6. Apply 'tabular-nums' to all metrics, KPI counters, ticket IDs, and timestamp displays.",
+    "7. DO NOT change layout grids, container structures, or color palettes (#070B14 dark, #F8FAFC light, #00E5FF / #0284C7 cyan accents).",
+    "8. Ensure every interactive element retains its data-testid attributes for testing compatibility.",
+    "9. Audit all text in the News section to guarantee 100% PT-BR compliance."
+  ],
+  "image_urls": []
+}
