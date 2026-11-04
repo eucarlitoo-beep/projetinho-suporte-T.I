@@ -1,0 +1,413 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* Slack chat typography: use the open Lato family across the app. Slack's own Slack-Lato files are not bundled. */
+@import "@fontsource/lato/400.css";
+@import "@fontsource/lato/700.css";
+@import "@fontsource-variable/jetbrains-mono";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: 'Slack-Lato', Lato, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-sans: 'Slack-Lato', Lato, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-serif: 'Slack-Lato', Lato, sans-serif;
+    --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+    --color-glow: var(--glow);
+    --color-void: var(--void);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: #F8FAFC;
+    --foreground: #0F172A;
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+    --primary: #0284C7;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F1F5F9;
+    --secondary-foreground: #0F172A;
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
+    --accent: #E0F2FE;
+    --accent-foreground: #0C4A6E;
+    --destructive: #DC2626;
+    --border: rgba(15, 23, 42, 0.09);
+    --input: rgba(15, 23, 42, 0.14);
+    --ring: #0284C7;
+    --chart-1: #0284C7;
+    --chart-2: #38BDF8;
+    --chart-3: #34D399;
+    --chart-4: #FBBF24;
+    --chart-5: #F472B6;
+    --radius: 0.75rem;
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: #0F172A;
+    --sidebar-primary: #0284C7;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #F1F5F9;
+    --sidebar-accent-foreground: #0F172A;
+    --sidebar-border: rgba(15, 23, 42, 0.08);
+    --sidebar-ring: #0284C7;
+    --glow: #0284C7;
+    --void: #EEF4FA;
+    /* type tuning — light: ink on paper can carry full weight */
+    --w-display: 700;
+    --w-heading: 600;
+    --w-title: 600;
+    --w-strong: 600;
+    --track-text: 0;
+}
+
+.dark {
+    --background: #070B14;
+    --foreground: #F8FAFC;
+    --card: #0C1222;
+    --card-foreground: #F1F5F9;
+    --popover: #0C1222;
+    --popover-foreground: #F1F5F9;
+    --primary: #00E5FF;
+    --primary-foreground: #070B14;
+    --secondary: #131C31;
+    --secondary-foreground: #F1F5F9;
+    --muted: #131C31;
+    --muted-foreground: #94A3B8;
+    --accent: #131C31;
+    --accent-foreground: #F8FAFC;
+    --destructive: #F87171;
+    --border: rgba(56, 189, 248, 0.13);
+    --input: rgba(56, 189, 248, 0.2);
+    --ring: #00E5FF;
+    --chart-1: #00E5FF;
+    --chart-2: #38BDF8;
+    --chart-3: #34D399;
+    --chart-4: #FBBF24;
+    --chart-5: #F472B6;
+    --sidebar: #0A101D;
+    --sidebar-foreground: #F1F5F9;
+    --sidebar-primary: #00E5FF;
+    --sidebar-primary-foreground: #070B14;
+    --sidebar-accent: #131C31;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: rgba(56, 189, 248, 0.12);
+    --sidebar-ring: #00E5FF;
+    --glow: #00E5FF;
+    --void: #050811;
+    /* type tuning — dark: light text blooms, so strokes are trimmed and text opened up */
+    --w-display: 700;
+    --w-heading: 600;
+    --w-title: 600;
+    --w-strong: 600;
+    --track-text: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  html {
+    @apply font-sans;
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    font-synthesis: none;
+    font-feature-settings: normal;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-size: 0.9375rem;
+    line-height: 1.4667;
+    letter-spacing: var(--track-text);
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, .font-heading { font-feature-settings: normal; }
+  h1, h2, h3, h4 {
+    @apply font-heading;
+    text-wrap: balance;
+    color: var(--foreground);
+  }
+  h1 { font-weight: var(--w-display); letter-spacing: -0.03em; line-height: 1.04; }
+  h2 { font-weight: var(--w-heading); letter-spacing: -0.024em; line-height: 1.12; }
+  h3 { font-weight: var(--w-title); letter-spacing: -0.016em; line-height: 1.28; }
+  h4 { font-weight: var(--w-title); letter-spacing: -0.01em; line-height: 1.35; }
+  p { text-wrap: pretty; }
+  strong, b { font-weight: var(--w-strong); }
+  button, [role="tab"], [role="menuitem"], [role="option"], label, input, select, textarea {
+    letter-spacing: -0.006em;
+  }
+  button { font-weight: 500; }
+  input::placeholder, textarea::placeholder { letter-spacing: -0.004em; }
+  code, kbd, pre, .font-mono {
+    font-feature-settings: "calt" 0, "zero";
+    letter-spacing: 0;
+  }
+  kbd { font-size: 0.6875rem; }
+  /* numbers that change (counters, KPIs, timestamps) shouldn't jitter */
+  time, .tabular { font-variant-numeric: tabular-nums; }
+  ::selection { background: color-mix(in oklab, var(--primary) 30%, transparent); }
+}
+
+/* ---------- type scale (semantic) ----------
+   Ratio ≈ 1.25 (major third) anchored at 15px text.
+   Weights come from --w-* tokens so dark mode trims stroke weight automatically. */
+@utility type-display {
+  font-family: var(--font-heading);
+  font-weight: var(--w-display);
+  font-size: clamp(2.75rem, 1.5rem + 4.4vw, 5.25rem);
+  line-height: 1;
+  letter-spacing: -0.032em;
+  text-wrap: balance;
+}
+@utility type-section {
+  font-family: var(--font-heading);
+  font-weight: var(--w-heading);
+  font-size: clamp(1.875rem, 1.25rem + 2vw, 2.875rem);
+  line-height: 1.08;
+  letter-spacing: -0.027em;
+  text-wrap: balance;
+}
+@utility type-title {
+  font-family: var(--font-heading);
+  font-weight: var(--w-heading);
+  font-size: clamp(1.625rem, 1.3rem + 1.2vw, 2.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+@utility type-h3-lg {
+  font-family: var(--font-heading);
+  font-weight: var(--w-title);
+  font-size: 1.5rem;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+@utility type-h3 {
+  font-family: var(--font-heading);
+  font-weight: var(--w-title);
+  font-size: 1.1875rem;
+  line-height: 1.3;
+  letter-spacing: -0.016em;
+  text-wrap: balance;
+}
+@utility type-h4 {
+  font-family: var(--font-heading);
+  font-weight: var(--w-title);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  letter-spacing: -0.011em;
+}
+/* compact titles in app chrome (view headers, channel name) */
+@utility type-bar {
+  font-family: var(--font-heading);
+  font-weight: var(--w-heading);
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  letter-spacing: -0.013em;
+}
+@utility type-wordmark {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+@utility type-lead {
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  font-weight: 400;
+  line-height: 1.62;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+@utility type-reading {
+  font-size: 0.9375rem;
+  line-height: 1.62;
+  letter-spacing: var(--track-text);
+  text-wrap: pretty;
+}
+@utility type-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  /* case: punctuation & arrows re-centred for capitals */
+  font-feature-settings: "case", "cv08", "calt", "kern";
+}
+@utility type-caption {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  letter-spacing: 0.002em;
+  font-variant-numeric: tabular-nums;
+}
+@utility type-meta {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.004em;
+  font-variant-numeric: tabular-nums;
+}
+@utility type-kpi {
+  font-family: var(--font-heading);
+  font-weight: var(--w-display);
+  font-size: 1.875rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+/* Headline treatment uses the same Lato family as the rest of the app. */
+@utility type-headline {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.16;
+  font-optical-sizing: auto;
+  font-feature-settings: "kern", "liga", "lnum";
+  text-wrap: balance;
+}
+@utility type-dek {
+  font-size: 0.9375rem;
+  line-height: 1.4667;
+  letter-spacing: -0.006em;
+  text-wrap: pretty;
+}
+
+/* ---------- bespoke motion ---------- */
+@keyframes circuit-flow {
+  to { stroke-dashoffset: -400; }
+}
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.6); }
+}
+@keyframes typing-wave {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes glow-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--glow) 0%, transparent); }
+  50% { box-shadow: 0 0 22px 2px color-mix(in oklab, var(--glow) 35%, transparent); }
+}
+@keyframes ring-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+@keyframes kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.08) translate(-1%, -1%); }
+}
+@utility animate-kenburns {
+  animation: kenburns 9s ease-out forwards;
+}
+
+@utility animate-circuit {
+  stroke-dasharray: 6 18;
+  animation: circuit-flow 6s linear infinite;
+}
+@utility animate-node {
+  animation: node-pulse 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@utility animate-typing {
+  animation: typing-wave 1.2s ease-in-out infinite;
+}
+@utility animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+@utility animate-scan {
+  animation: scan 7s linear infinite;
+}
+@utility animate-breathe {
+  animation: glow-breathe 3s ease-in-out infinite;
+}
+@utility animate-ring-ping {
+  animation: ring-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@utility animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2.2s linear infinite;
+}
+
+/* faint circuit grid used behind surfaces */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--glow) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--glow) 7%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.text-glow {
+  text-shadow: 0 0 24px color-mix(in oklab, var(--glow) 55%, transparent);
+}
+
+/* slim scrollbars */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--glow) 25%, transparent) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--glow) 22%, transparent); border-radius: 99px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+@utility type-author {
+  font-family: var(--font-heading);
+  font-weight: var(--w-heading);
+  letter-spacing: -0.013em;
+}
+
+
+
+
+
+
